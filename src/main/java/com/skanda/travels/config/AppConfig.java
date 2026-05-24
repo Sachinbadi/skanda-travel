@@ -9,7 +9,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 @Configuration
-@EnableConfigurationProperties(SkandaJwtProperties.class)
+@EnableConfigurationProperties({SkandaJwtProperties.class, RazorpayProperties.class})
 public class AppConfig {
 
   @Bean

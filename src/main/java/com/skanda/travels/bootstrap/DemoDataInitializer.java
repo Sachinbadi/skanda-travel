@@ -1,13 +1,13 @@
 package com.skanda.travels.bootstrap;
 
-import com.skanda.travels.model.Bus;
-import com.skanda.travels.model.BusType;
-import com.skanda.travels.model.Offer;
-import com.skanda.travels.model.Role;
-import com.skanda.travels.model.RouteStop;
-import com.skanda.travels.model.TravelRoute;
-import com.skanda.travels.model.Trip;
-import com.skanda.travels.model.User;
+import com.skanda.travels.entity.Bus;
+import com.skanda.travels.entity.Offer;
+import com.skanda.travels.entity.RouteStop;
+import com.skanda.travels.entity.TravelRoute;
+import com.skanda.travels.entity.Trip;
+import com.skanda.travels.entity.User;
+import com.skanda.travels.enums.BusType;
+import com.skanda.travels.enums.SecurityRole;
 import com.skanda.travels.repository.BusRepository;
 import com.skanda.travels.repository.OfferRepository;
 import com.skanda.travels.repository.TripRepository;
@@ -104,14 +104,14 @@ public class DemoDataInitializer implements ApplicationRunner {
         "demo",
         "demo@skandatravels.test",
         passwordEncoder.encode("Travel123"),
-        Set.of(Role.ROLE_USER),
+        Set.of(SecurityRole.ROLE_USER),
         "9000000000"
     );
     createUserIfAbsent(
         "admin",
         "admin@skandatravels.test",
         passwordEncoder.encode("Admin123"),
-        Set.of(Role.ROLE_ADMIN, Role.ROLE_USER),
+        Set.of(SecurityRole.ROLE_ADMIN, SecurityRole.ROLE_USER),
         null
     );
   }
@@ -120,7 +120,7 @@ public class DemoDataInitializer implements ApplicationRunner {
       String username,
       String email,
       String encodedPassword,
-      Set<Role> roles,
+      Set<SecurityRole> roles,
       String phone
   ) {
     if (userRepository.findByUsernameIgnoreCase(username).isPresent()) {

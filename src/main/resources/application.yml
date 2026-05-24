@@ -2,31 +2,28 @@ spring:
   application:
     name: skanda-travels-backend
   datasource:
-    url: jdbc:h2:mem:skanda;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    url: jdbc:postgresql://localhost:5432/skanda_travels
+    username: postgres
+    password: postgres123
   jpa:
     hibernate:
-      ddl-auto: create-drop
-    show-sql: false
+      ddl-auto: update
+    show-sql: true
     properties:
       hibernate:
         format_sql: true
 
 server:
   port: 8080
-  error:
-    include-message: always
 
 skanda:
   jwt:
-    secret: ${SKANDA_JWT_SECRET:change-this-to-a-long-random-secret-key-at-least-256-bits-for-production}
+    secret: ${SKANDA_JWT_SECRET:skanda-travels-local-dev-secret-key-minimum-256bits}
     expiration-ms: 86400000
+
+razorpay:
+  key-id: ${RAZORPAY_KEY_ID}
+  key-secret: ${RAZORPAY_KEY_SECRET}
 
 logging:
   level:

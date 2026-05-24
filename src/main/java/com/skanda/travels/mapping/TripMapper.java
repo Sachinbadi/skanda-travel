@@ -2,9 +2,10 @@ package com.skanda.travels.mapping;
 
 import com.skanda.travels.dto.BookingResponse;
 import com.skanda.travels.dto.TripSearchResult;
-import com.skanda.travels.model.Booking;
-import com.skanda.travels.model.Trip;
-import com.skanda.travels.model.TravelRoute;
+import com.skanda.travels.entity.Booking;
+import com.skanda.travels.entity.TravelRoute;
+import com.skanda.travels.entity.Trip;
+
 import java.util.Objects;
 import java.util.stream.Collectors;
 

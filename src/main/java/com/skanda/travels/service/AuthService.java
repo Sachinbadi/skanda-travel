@@ -3,9 +3,9 @@ package com.skanda.travels.service;
 import com.skanda.travels.dto.AuthResponse;
 import com.skanda.travels.dto.LoginRequest;
 import com.skanda.travels.dto.RegisterRequest;
-import com.skanda.travels.error.BadRequestException;
-import com.skanda.travels.model.Role;
-import com.skanda.travels.model.User;
+import com.skanda.travels.entity.User;
+import com.skanda.travels.enums.SecurityRole;
+import com.skanda.travels.exception.BadRequestException;
 import com.skanda.travels.repository.UserRepository;
 import com.skanda.travels.security.AuthenticatedUserDetails;
 import com.skanda.travels.security.JwtService;
@@ -54,18 +54,18 @@ public class AuthService {
     user.setUsername(username);
     user.setPassword(passwordEncoder.encode(req.getPassword()));
     user.setPhone(req.getPhone() == null ? null : req.getPhone().trim());
-    user.getRoles().add(Role.ROLE_USER);
+    user.getRoles().add(SecurityRole.ROLE_USER);
     user = userRepository.save(user);
 
     String token = jwtService.generateToken(
         user.getUsername(),
-        user.getRoles().stream().map(Role::name).collect(Collectors.toSet())
+        user.getRoles().stream().map(SecurityRole::name).collect(Collectors.toSet())
     );
     return new AuthResponse(
         token,
         user.getId(),
         user.getUsername(),
-        user.getRoles().stream().map(Role::name).collect(Collectors.toSet())
+        user.getRoles().stream().map(SecurityRole::name).collect(Collectors.toSet())
     );
   }
 
@@ -86,7 +86,7 @@ public class AuthService {
         token,
         persisted.getId(),
         persisted.getUsername(),
-        persisted.getRoles().stream().map(Role::name).collect(Collectors.toSet())
+        persisted.getRoles().stream().map(SecurityRole::name).collect(Collectors.toSet())
     );
   }
 }

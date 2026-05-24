@@ -1,8 +1,9 @@
 package com.skanda.travels.repository;
 
-import com.skanda.travels.model.User;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.skanda.travels.entity.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 

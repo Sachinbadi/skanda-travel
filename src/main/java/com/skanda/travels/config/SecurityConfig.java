@@ -54,8 +54,8 @@ public class SecurityConfig {
                 "/api/offers/**"
             ).permitAll()
             .requestMatchers(HttpMethod.GET, "/api/stats").permitAll()
-            .requestMatchers("/h2-console/**").permitAll()
             .requestMatchers("/error").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/payments/verify").permitAll()
             .anyRequest().authenticated()
         )
         .headers(h -> h.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))

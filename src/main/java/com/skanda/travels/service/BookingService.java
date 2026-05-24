@@ -1,25 +1,30 @@
 package com.skanda.travels.service;
 
+import com.skanda.travels.dto.BookingResponse;
 import com.skanda.travels.dto.CreateBookingRequest;
 import com.skanda.travels.dto.PassengerSeatRequest;
-import com.skanda.travels.error.BadRequestException;
-import com.skanda.travels.error.NotFoundException;
+import com.skanda.travels.entity.Booking;
+import com.skanda.travels.entity.BookingPassenger;
+import com.skanda.travels.entity.Offer;
+import com.skanda.travels.entity.Trip;
+import com.skanda.travels.entity.User;
+import com.skanda.travels.enums.BookingStatus;
+import com.skanda.travels.enums.Role;
+import com.skanda.travels.exception.BadRequestException;
+import com.skanda.travels.exception.NotFoundException;
 import com.skanda.travels.mapping.TripMapper;
-import com.skanda.travels.model.Booking;
-import com.skanda.travels.model.BookingPassenger;
-import com.skanda.travels.model.BookingStatus;
-import com.skanda.travels.model.Offer;
-import com.skanda.travels.model.Trip;
-import com.skanda.travels.model.User;
 import com.skanda.travels.repository.BookingRepository;
 import com.skanda.travels.repository.OfferRepository;
 import com.skanda.travels.repository.TripRepository;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,18 +35,17 @@ public class BookingService {
   private final TripRepository tripRepository;
   private final OfferRepository offerRepository;
 
-  public BookingService (
+  public BookingService(
       BookingRepository bookingRepository,
       TripRepository tripRepository,
-      OfferRepository offerRepository
-  ) {
+      OfferRepository offerRepository) {
     this.bookingRepository = bookingRepository;
     this.tripRepository = tripRepository;
     this.offerRepository = offerRepository;
   }
 
   @Transactional
-  public com.skanda.travels.dto.BookingResponse createBooking (User user, CreateBookingRequest req) {
+  public BookingResponse createBooking(User user, CreateBookingRequest req) {
     Trip trip = tripRepository.findLockedById(req.getTripId())
         .orElseThrow(() -> new NotFoundException("Trip not found"));
 
@@ -81,7 +85,7 @@ public class BookingService {
     booking.setNumberOfPassengers(seatsNeeded);
     booking.setTotalFare(total);
     booking.setCouponCodeApplied(couponStored);
-    booking.setStatus(BookingStatus.CONFIRMED);
+    booking.setStatus(BookingStatus.PENDING);
 
     List<BookingPassenger> persistedPassengers = new ArrayList<>();
     for (PassengerSeatRequest line : passengerLines) {
@@ -97,7 +101,7 @@ public class BookingService {
     return TripMapper.toBookingResponse(booking);
   }
 
-  private Offer resolveOffer (String rawCode) {
+  private Offer resolveOffer(String rawCode) {
     if (rawCode == null || rawCode.isBlank()) {
       return null;
     }
@@ -116,16 +120,62 @@ public class BookingService {
   }
 
   @Transactional(readOnly = true)
-  public List<com.skanda.travels.dto.BookingResponse> listMyBookings (User user) {
+  public List<BookingResponse> listMyBookings(User user) {
     return bookingRepository.findByUserIdOrderByBookingTimeDesc(user.getId()).stream()
         .map(TripMapper::toBookingResponse)
         .toList();
   }
 
   @Transactional(readOnly = true)
-  public com.skanda.travels.dto.BookingResponse getBookingForUser (User user, String reference) {
+  public BookingResponse getBookingForUser(User user, String reference) {
     Booking booking = bookingRepository.findByBookingReferenceAndUserId(reference.trim(), user.getId())
         .orElseThrow(() -> new NotFoundException("Booking not found"));
     return TripMapper.toBookingResponse(booking);
   }
+
+  @Transactional
+  public BookingResponse confirmBooking(String bookingReference) {
+    Booking booking = bookingRepository.findByBookingReference(bookingReference.trim())
+        .orElseThrow(() -> new NotFoundException("Booking reference not found"));
+    if (!booking.getStatus().equals(BookingStatus.PENDING)) {
+      throw new BadRequestException("Booking is either cancelled or already confirmed!");
+    }
+    booking.setStatus(BookingStatus.CONFIRMED);
+    bookingRepository.save(booking);
+    return TripMapper.toBookingResponse(booking);
+  }
+
+  @Transactional
+  public BookingResponse cancelBooking(User user, String bookingReference) {
+    Booking booking = bookingRepository.findByBookingReferenceAndUserId(bookingReference.trim(), user.getId())
+        .orElseThrow(() -> new NotFoundException("Booking reference not found"));
+
+    if (!booking.getStatus().equals(BookingStatus.CONFIRMED)) {
+      throw new BadRequestException("Only confirmed bookings can be cancelled");
+    }
+    booking.setStatus(BookingStatus.REFUND_INITIATED);
+    booking.getTrip().setAvailableSeats(booking.getTrip().getAvailableSeats() + booking.getNumberOfPassengers());
+    tripRepository.save(booking.getTrip());
+    booking.setCancelledBy(Role.USER);
+    booking.setCancelledAt(Instant.now());
+    bookingRepository.save(booking);
+    return TripMapper.toBookingResponse(booking);
+  }
+
+  public void completeRefund(String bookingReference) {
+  }
+
+  @Transactional
+  public void adminCancellation(Long tripId) {
+
+    List<Booking> bookingList = bookingRepository.findByTripIdAndStatus(tripId, BookingStatus.CONFIRMED);
+
+    for(Booking book : bookingList) {
+      book.setStatus(BookingStatus.REFUND_INITIATED);
+      book.setCancelledBy(Role.ADMIN);
+      book.setCancelledAt(Instant.now());
+    }
+    bookingRepository.saveAll(bookingList);
+  }
+
 }

@@ -1,8 +1,9 @@
 package com.skanda.travels.repository;
 
-import com.skanda.travels.model.TravelRoute;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.skanda.travels.entity.TravelRoute;
 
 public interface TravelRouteRepository extends JpaRepository<TravelRoute, Long> {
 

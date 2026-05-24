@@ -1,11 +1,12 @@
 package com.skanda.travels.security;
 
-import com.skanda.travels.model.User;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.skanda.travels.entity.User;
 
 public class AuthenticatedUserDetails implements UserDetails {
 
